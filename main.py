@@ -4,6 +4,10 @@ import streamlit as st
 import investpy
 import altair as alt
 import datetime
+from datetime import datetime, date, timedelta
+from dateutil.relativedelta import relativedelta
+
+today = datetime.today().strftime('%d/%m/%Y')
 
 st.title('FX tool')
 
@@ -34,7 +38,7 @@ economic_data = investpy.economic_calendar(time_zone=None, time_filter='time_onl
 ISM =economic_data[economic_data['event'].str.contains('ISM Non-Manufacturing PMI')]
 date2 =[]
 for i in ISM['date']:
-    new_date = datetime.datetime.strptime(i,"%d/%m/%Y").strftime("%Y-%m-%d")
+    new_date = datetime.strptime(i,"%d/%m/%Y").strftime("%Y-%m-%d")
     date2.append(new_date)
 
 ISM['date']=ISM['date'].str.replace('/','-')
@@ -132,3 +136,20 @@ oil_chart =(
     )
 )
 st.write(oil_chart)
+
+st.write("Dow jones")
+dow = investpy.get_index_historical_data(index='S&P 500',country='united states',
+                                        from_date='01/01/2010',to_date=today)
+
+dow.index = dow.index.strftime('%Y/%m/%d')
+dow =  dow.T
+dow = dow.T.reset_index()
+chart =(
+    alt.Chart(dow)
+    .mark_line(opacity=0.8,clip=True)
+    .encode(
+        x="Date:T",
+        y=alt.Y("Close:Q",stack=None)
+    )
+)
+chart
